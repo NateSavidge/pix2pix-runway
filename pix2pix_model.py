@@ -26,6 +26,8 @@ import numpy as np
 from PIL import Image
 import os
 import base64
+from post_process import Quantize
+from datetime import datetime
 
 class Pix2Pix():
 
@@ -35,6 +37,9 @@ class Pix2Pix():
         if checkpoint_path is not None: 
             self.model = tf.keras.models.load_model(checkpoint_path)
         else:
+            ## With walls:
+            # self.model = tf.keras.models.load_model('generator_model_001_floorplanswalls_062320.h5')
+            ## No walls:
             self.model = tf.keras.models.load_model('generator_model_003_061720.h5')
 
 
@@ -54,5 +59,16 @@ class Pix2Pix():
 
         # Construct a PIL image to display in Runway
         PIL_IMG = Image.fromarray(np.uint8(mapped_array))
+        #return PIL_IMG
+        # # Quantize image (if quantize=true)
+        quantize = Quantize()
+        quantized = quantize.from_model(PIL_IMG)
 
-        return PIL_IMG
+        img_name_1 = 'orig-' + datetime.now().strftime("%H%M%S") + '.png'
+        img_name_2 = 'quantized-' + datetime.now().strftime("%H%M%S") + '.png'
+        print(img_name_1)
+
+        PIL_IMG.save(img_name_1)
+        quantized.save(img_name_2)
+
+        return quantized
